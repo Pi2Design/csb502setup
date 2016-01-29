@@ -10,7 +10,9 @@ fi
 
 echo -n "Configuring system for CSB502SSD temp sensor and realtime clock..."
 
-# TODO, make backup
+# make backup
+cp /boot/config.txt /boot/config.bk
+
 # setup dallas 1-wire temp sensor
 grep -q '^dtoverlay=w1-gpio' /boot/config.txt && sed -i 's/^dtoverlay=w1-gpio.*/dtoverlay=w1-gpio,gpiopin=23,pullup=on/' /boot/config.txt || echo 'dtoverlay=w1-gpio,gpiopin=23,pullup=on' >> /boot/config.txt
 
