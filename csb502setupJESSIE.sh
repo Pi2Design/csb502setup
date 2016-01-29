@@ -7,6 +7,9 @@ if [[ $EUID -ne 0 ]]; then
     echo "must be run as root. try: sudo $0"
 	exit 1
 fi
+
+echo -n "Configuring system for CSB502SSD temp sensor and realtime clock..."
+
 # TODO, make backup
 # setup dallas 1-wire temp sensor
 grep -q '^dtoverlay=w1-gpio' /boot/config.txt && sed -i 's/^dtoverlay=w1-gpio.*/dtoverlay=w1-gpio,gpiopin=23,pullup=on/' /boot/config.txt || echo 'dtoverlay=w1-gpio,gpiopin=23,pullup=on' >> /boot/config.txt
@@ -19,39 +22,29 @@ grep -q '^dtparam=i2c_arm' /boot/config.txt && sed -i 's/^dtparam=i2c_arm.*/dtpa
 grep -q '^rtc-ds1307' /etc/modules || echo 'rtc-ds1307' >> /etc/modules
 grep -q '^sudo hwclock -s' /etc/rc.local && sed -i 's/^sudo hwclock -s.*/hwclock -s/' /etc/rc.local || grep -q '^hwclock -s' /etc/rc.local || sed -i '/exit 0/ ihwclock -s' /etc/rc.local
 
-
+echo "done"
 
 read -r -p "Would you like to setup Wifi network name and password? [y/N] " response
 case $response in
-    [yY][eE][sS]|[yY]) 
-        echo -n "Enter the network name (ESSID, case sensitive):" 
-		read -r essid
-		echo -n "Enter the network password (case sensitive):"
-		read -r wifipass
-	
-		echo 'network={' >> /etc/wpa_supplicant/wpa_supplicant.conf
-		echo '    ssid="The_ESSID_from_earlier"' >> /etc/wpa_supplicant/wpa_supplicant.conf
-		echo '    psk="Your_wifi_password"' >> /etc/wpa_supplicant/wpa_supplicant.conf
-		echo '}' >> /etc/wpa_supplicant/wpa_supplicant.conf
+    [yY][eE][sS]|[yY])  
+	echo -n "Enter the network name (ESSID, case sensitive):" 
+	read essid
+	echo -n "Enter the network password (case sensitive):"
+	read wifipass
+
+	#remove old entry for network={...}
+	sed -i /^network=/,/}/d /etc/wpa_supplicant/wpa_supplicant.conf
+
+	echo "network={" >> /etc/wpa_supplicant/wpa_supplicant.conf
+	echo "    ssid=\"$essid\"" >> /etc/wpa_supplicant/wpa_supplicant.conf
+	echo "    psk=\"$wifipass\"" >> /etc/wpa_supplicant/wpa_supplicant.conf
+	echo "}" >> /etc/wpa_supplicant/wpa_supplicant.conf
         ;;
     *)
         echo "OK, not configuring network name/pass"
         ;;
 esac
 
-echo -n "Enter the network name (ESSID, case sensitive):" 
-read essid
-echo -n "Enter the network password (case sensitive):"
-read wifipass
-
-#remove old entry for network={...}
-
-sed -i /^network=/,/}/d /etc/wpa_supplicant/wpa_supplicant.conf
-
-echo 'network={' >> /etc/wpa_supplicant/wpa_supplicant.conf
-echo '    ssid="$essid"' >> /etc/wpa_supplicant/wpa_supplicant.conf
-echo '    psk="$wifipass"' >> /etc/wpa_supplicant/wpa_supplicant.conf
-echo '}' >> /etc/wpa_supplicant/wpa_supplicant.conf
 
 
 
