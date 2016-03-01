@@ -23,6 +23,7 @@ grep -q '^dtparam=i2c_arm' /boot/config.txt && sed -i 's/^dtparam=i2c_arm.*/dtpa
 # setup rtc
 grep -q '^rtc-ds1307' /etc/modules || echo 'rtc-ds1307' >> /etc/modules
 grep -q '^sudo hwclock -s' /etc/rc.local && sed -i 's/^sudo hwclock -s.*/hwclock -s/' /etc/rc.local || grep -q '^hwclock -s' /etc/rc.local || sed -i '/exit 0/ ihwclock -s' /etc/rc.local
+grep -q '^echo ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device' /etc/rc.local || sed -i '/^hwclock -s/ iecho ds1307 0x68 > /sys/class/i2c-adapter/i2c-1/new_device' /etc/rc.local
 
 echo "done"
 
